@@ -78,7 +78,7 @@
       [2 4 6])))
 
 (defn get-str [state]
-  (let [ap (first (:players state))
+  (let [ap (get-piece (first (:players state)))
         marks (map name (:state state))
         grid (partition 3 marks)
         rows (map (partial s/join " ") grid)]
