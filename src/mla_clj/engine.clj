@@ -13,22 +13,25 @@
     * Turn-based
     * Finite state - A state can be represented in finite memory.
     * Finite moves - There are finitely many moves per state."
-  (initial [this players]
+  (initial [rules players]
            "Generate an initial state given a list of players in player order
             (first to start). GameRules may add metadata to the players for
             their own use.")
-  (successors [this ^State state]
+  (successors [rules ^State state]
               "Return a seq of successors to this state.")
-  (losers? [this ^State state]
+  (losers? [rules ^State state]
            "The subset of players who are losers in the state, or nil if there
             are no losers.")
-  (str-state [this ^State state]
+  (str-state [rules ^State state]
              "Return a string representation of the state suitable for printing."))
 
 (defprotocol Player
   "Protocol defining a player in the game. Players should also implement IObj."
   (move [this game successors]
         "Select a successor. No resource limitations on selecting a move."))
+
+(defn player-to-move [^State {players :players}]
+  (first players))
 
 (defn create-game
   "Creates a game in the initial state for the given rules and players."
@@ -42,7 +45,7 @@
    TODO: Document terminal conditions"
   [{:keys [rules state] :as game}]
   (let [successors (successors rules state)
-        ap (first (:players state))
+        ap (player-to-move state)
         next-state (move ap game successors)
         losers (losers? rules next-state)]
     (println (str-state rules next-state))

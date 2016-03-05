@@ -5,8 +5,9 @@
     [mla-clj.engine :as en]
     [mla-clj.util :as util]))
 
-(defn- get-piece [player]
-  (::piece (meta player)))
+(defn get-piece [player]
+  (when player
+    (::piece (meta player))))
 
 (deftype TTTPlayer [_meta]
   en/Player
@@ -23,8 +24,8 @@
   (toString [this]
     (str (get-piece this))))
 
-(defn create-player []
-  (TTTPlayer. nil))
+(defn player [marker]
+  (TTTPlayer. {::piece marker}))
 
 (defn get-initial
   [players]
@@ -58,24 +59,26 @@
 
 (defmacro ^:private check-loss-at
   [players state & index-tuples]
-  (let [predicates (map (partial concat `(equal-at ~state)) index-tuples)
-        bodies (map #(list 'select-loser (list 'nth state (first %)) players) index-tuples)]
-    `(cond
-       ~@(interleave predicates bodies)
-       :else nil)))
+  (let [state-var (gensym 'state)
+        players-var (gensym 'players)
+        predicates (map (partial concat `(equal-at ~state-var)) index-tuples)
+        bodies (map #(list 'select-loser (list 'nth state-var (first %)) players-var) index-tuples)]
+    `(let [~state-var ~state
+           ~players-var ~players]
+       (cond
+         ~@(interleave predicates bodies)
+         :else nil))))
 
 (defn get-losers [{:keys [players state]}]
-  (if (every? (partial not= :_) state)
-    players
-    (check-loss-at players state
-      [0 1 2]
-      [3 4 5]
-      [6 7 8]
-      [0 3 6]
-      [1 4 7]
-      [2 5 8]
-      [0 4 8]
-      [2 4 6])))
+  (check-loss-at players state
+                 [0 1 2]
+                 [3 4 5]
+                 [6 7 8]
+                 [0 3 6]
+                 [1 4 7]
+                 [2 5 8]
+                 [0 4 8]
+                 [2 4 6]))
 
 (defn get-str [state]
   (let [ap (get-piece (first (:players state)))
@@ -97,3 +100,6 @@
   Object
   (toString [this]
     ""))
+
+(defn rules []
+  (NaughtsAndCrosses.))

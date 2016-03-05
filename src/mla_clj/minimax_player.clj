@@ -5,8 +5,9 @@
 (defrecord DecisionTuple [state utility best-child])
 
 (defn utility
-  "+1 if player wins, -1 if player loses, 0 if it is a draw or depth is 0, or nil
-   if the state is not terminal."
+  "+1 if player wins, -1 if player loses, 0 if it is a draw. If depth = 0, then
+  use the heuristic to determine the utility on [-1, 1] ϵ ℝ. Return nil if the
+  state is not terminal."
   [rules player heuristic state depth]
   ;; TODO: Implement for non-2-player games (i.e. vector representation)
   (if-let [losers (en/losers? rules state)]
@@ -73,3 +74,6 @@
     (MinimaxPlayer. meta))
   (meta [this]
     _meta))
+
+(defn player []
+  (MinimaxPlayer. {}))
